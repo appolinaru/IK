@@ -19,7 +19,7 @@ def inverse_kinematics_analytic(X_ref):
     # alpha = -np.arcsin(lx/l)
     # beta = np.arcsin(ly/l);
     # gamma = np.arccos( (2*L**2-l**2)/ (2*L**2) )
-    #
+    
     # q_abduction = beta;
     # q_hip = alpha+0.5*(np.pi-gamma)
     # q_knee = -np.pi+gamma

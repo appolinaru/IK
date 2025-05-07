@@ -5,8 +5,12 @@ class parameters:
         self.fsm_stance = 2
         self.fsm_swing = 3
         self.t_stand = 0.1
-        self.t_step = 0.2
+        self.t_step = 0.15
+
         self.lz0 = -0.24864398730826576
         self.hcl = 0.075
+
+        self.mass = 12.453
+        self.gravity = 9.81
 
 pms = parameters()

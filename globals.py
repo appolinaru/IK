@@ -24,7 +24,17 @@ def init():
     lz_i = np.array([pms.lz0,pms.lz0,pms.lz0,pms.lz0])
     lz_f = np.array([pms.lz0,pms.lz0,pms.lz0,pms.lz0])
 
-    #joint trajectory
+    #joint traj
     global q_ref, u_ref
 
-    q_ref, u_ref = (np.zeros(12) for _ in range(2))
+    q_ref,u_ref = (np.zeros(12) for _ in range(2))
+    
+    #joint control
+
+    global q_act, u_act, trq
+    
+    q_act, u_act, trq = (np.zeros(12) for _ in range(3))
+
+    global xdot_ref
+
+    xdot_ref = 0
