@@ -45,8 +45,12 @@ def state_machine():
 
             globals.lx_i[leg_num] = -0.5*globals.xdot_ref * t_step
             globals.lx_f[leg_num] = 0.5*globals.xdot_ref * t_step
+            globals.ly_i[leg_num] = -0.5*globals.ydot_ref * t_step
+            globals.ly_f[leg_num] = 0.5*globals.ydot_ref * t_step
 
         if(time >= globals.t_fsm[leg_num]+ t_step and globals.fsm[leg_num]==fsm_swing):
+            if (leg_num == 0 or leg_num == 1):
+                globals.step+=1
             globals.fsm[leg_num] = fsm_stance
             globals.t_fsm[leg_num] = time
             globals.t_i[leg_num] = 0
@@ -56,3 +60,5 @@ def state_machine():
 
             globals.lx_i[leg_num] = 0.5*globals.xdot_ref * t_step
             globals.lx_f[leg_num] = -0.5*globals.xdot_ref * t_step
+            globals.ly_i[leg_num] = 0.5*globals.ydot_ref * t_step
+            globals.ly_f[leg_num] = -0.5*globals.ydot_ref * t_step

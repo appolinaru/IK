@@ -8,6 +8,7 @@ from forward_kinematics_leg import forward_kinematics_leg
 from cartesian_traj import cartesian_traj
 from joint_trah import joint_traj
 from joint_control import joint_control 
+from high_level_control import high_level_control
 
 flag_trajectory_generation = 0
 
@@ -49,10 +50,11 @@ with viewer.launch_passive(model, data) as vis:
             globals.q_act = data.qpos[7:].copy()
             globals.u_act = data.qvel[6:].copy()
             joint_control()
+            high_level_control()
             data.ctrl = globals.trq.copy()
             mj.mj_step(model, data)
 
-        # Camera setup
+        #Camera setup
         # vis.cam.lookat[:] = data.qpos[:3] 
         # vis.cam.distance = 2.0
         # vis.cam.elevation = -10

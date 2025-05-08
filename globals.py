@@ -35,6 +35,12 @@ def init():
     
     q_act, u_act, trq = (np.zeros(12) for _ in range(3))
 
-    global xdot_ref
+    global xdot_ref, ydot_ref
 
     xdot_ref = 0
+    ydot_ref = 0
+
+    global prev_step, step
+
+    step = 0
+    prev_step = 0
