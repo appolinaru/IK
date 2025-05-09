@@ -2,10 +2,10 @@ import globals
 import numpy as np
 from parameters import pms
 from jac_end_effector_leg import jac_end_effector_leg
+from zmp_controller import zmp_controller
 
 
-
-def joint_control():
+def joint_control(model,data):
 
     fsm = globals.fsm
     fsm_stance = pms.fsm_stance
@@ -16,6 +16,18 @@ def joint_control():
     u_act = globals.u_act
     q_ref = globals.q_ref
     u_ref = globals.u_ref
+
+    # Получаем текущее положение CoM
+    #com_x, com_y = zmp_controller(globals.q_act)
+    com_x, com_y = zmp_controller(model,data)
+    # Ошибка по положению CoM относительно желаемой траектории
+    com_error_x = globals.com_x_ref - com_x
+    com_error_y = globals.com_y_ref - com_y
+
+    # Простая сила обратной связи на туловище для коррекции положения
+    K_com = 13.0  # Коэффициент обратной связи (можно подбирать)
+    F_com = np.array([K_com * com_error_x, K_com * com_error_y, 0.0])
+
 
     for leg_no in range(4):
         if (fsm[leg_no]==fsm_stand):
@@ -29,13 +41,20 @@ def joint_control():
             globals.trq[3*leg_no] = -100*(q_act[3*leg_no]-q_ref[3*leg_no])-10*(u_act[3*leg_no] - u_ref[3*leg_no])
             globals.trq[3*leg_no + 1] = -100*(q_act[3*leg_no +1]-q_ref[3*leg_no + 1])-10*(u_act[3*leg_no + 1] - u_ref[3*leg_no + 1])
             globals.trq[3*leg_no+2] =  -100*(q_act[3*leg_no+2] -q_ref[3*leg_no+2] )-10*(u_act[3*leg_no+2] -u_ref[3*leg_no+2] )
+
         if (fsm[leg_no]==fsm_stance):
             F = np.array([0,0,0.5*pms.mass*pms.gravity])
             q_leg = np.array([q_ref[3*leg_no],q_ref[3*leg_no+1],q_ref[3*leg_no+2]])
             J = jac_end_effector_leg(q_leg,leg_no)
             trq_grav = -J.T@F
             #trq_grav = np.zeros(3)
+            
+            F_total = F + F_com  # добавляем корректирующую силу к силе тяжести
+            J = jac_end_effector_leg(q_leg,leg_no)
+            trq_grav = -J.T @ F_total
+
             #pd control trq = -kp*(q_act-q_ref)-kd*(u_act - u_ref)
             globals.trq[3*leg_no] =trq_grav[0] -100*(q_act[3*leg_no]-q_ref[3*leg_no])-10*(u_act[3*leg_no] - u_ref[3*leg_no])
             globals.trq[3*leg_no + 1] =trq_grav[1] -100*(q_act[3*leg_no +1]-q_ref[3*leg_no + 1])-10*(u_act[3*leg_no + 1] - u_ref[3*leg_no + 1])
             globals.trq[3*leg_no+2] =trq_grav[2]  -100*(q_act[3*leg_no+2] -q_ref[3*leg_no+2] )-10*(u_act[3*leg_no+2] -u_ref[3*leg_no+2] )
+

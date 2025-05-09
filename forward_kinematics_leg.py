@@ -5,11 +5,12 @@ from types import SimpleNamespace
 def forward_kinematics_leg(q,leg_no):
 
     L = 0.2; #thigh and shank length
+    
     if (leg_no==1 or leg_no==3): #Fl or RL
-        w = 0.08505;
+        w = 0.08505
 
     if (leg_no==0 or leg_no==2): #FR or RR
-        w = -0.08505;
+        w = -0.08505
 
     c1 = np.cos(q[0]); s1 = np.sin(q[0]);
     c2 = np.cos(q[1]); s2 = np.sin(q[1]);
@@ -45,5 +46,6 @@ def forward_kinematics_leg(q,leg_no):
         H02 = H02,
         H03 = H03
         )
+    
 
     return sol

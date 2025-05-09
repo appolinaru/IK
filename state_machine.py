@@ -62,3 +62,53 @@ def state_machine():
             globals.lx_f[leg_num] = -0.5*globals.xdot_ref * t_step
             globals.ly_i[leg_num] = 0.5*globals.ydot_ref * t_step
             globals.ly_f[leg_num] = -0.5*globals.ydot_ref * t_step
+# def state_machine():
+#     time = globals.time
+#     gait = pms.gaits[pms.current_gait]
+#     phase_duration = gait["phase_duration"]
+    
+#     # Определяем текущую фазу (0 → 1 → 2 → 3 → 0...)
+#     total_phases = len(gait["phase_order"])
+#     current_phase_index = int((time // phase_duration) % total_phases)
+#     active_leg = gait["phase_order"][current_phase_index][0]  # Текущая нога в swing
+
+#     for leg_num in range(4):
+#         # Для активной ноги (swing)
+#         if leg_num == active_leg:
+#             if globals.fsm[leg_num] != pms.fsm_swing:  # Если ещё не в swing
+#                 globals.fsm[leg_num] = pms.fsm_swing
+#                 globals.t_fsm[leg_num] = time
+#                 globals.t_i[leg_num] = 0
+#                 globals.t_f[leg_num] = phase_duration
+#                 globals.lz_i[leg_num] = pms.lz0 
+#                 globals.lz_f[leg_num] = pms.lz0 + pms.hcl
+                
+#                 # Установка начальных/конечных позиций для движения
+#                 globals.lx_i[leg_num] = -0.5 * globals.xdot_ref * phase_duration
+#                 globals.lx_f[leg_num] = 0.5 * globals.xdot_ref * phase_duration
+#                 globals.ly_i[leg_num] = -0.5 * globals.ydot_ref * phase_duration
+#                 globals.ly_f[leg_num] = 0.5 * globals.ydot_ref * phase_duration
+        
+#         # Для неактивных ног (stance)
+#         else:
+#             if globals.fsm[leg_num] == pms.fsm_swing:
+#                 # Проверяем, завершила ли нога swing-фазу
+#                 if time >= globals.t_fsm[leg_num] + phase_duration:
+#                     globals.fsm[leg_num] = pms.fsm_stance
+#                     globals.t_fsm[leg_num] = time
+#                     globals.t_i[leg_num] = 0
+#                     globals.t_f[leg_num] = phase_duration
+#                     globals.lz_i[leg_num] = pms.lz0
+#                     globals.lz_f[leg_num] = pms.lz0
+                    
+#                     # Добавить в блок установки stance
+#                     globals.lx_i[leg_num] = 0.5 * globals.xdot_ref * phase_duration
+#                     globals.lx_f[leg_num] = -0.5 * globals.xdot_ref * phase_duration
+#                     globals.ly_i[leg_num] = 0.5 * globals.ydot_ref * phase_duration
+#                     globals.ly_f[leg_num] = -0.5 * globals.ydot_ref * phase_duration
+
+#                     # # Установка позиций для stance (чтобы нога не "прыгала")
+#                     # globals.lx_i[leg_num] = globals.lx_ref[leg_num]
+#                     # globals.lx_f[leg_num] = globals.lx_ref[leg_num]
+#                     # globals.ly_i[leg_num] = globals.ly_ref[leg_num]
+#                     # globals.ly_f[leg_num] = globals.ly_ref[leg_num]

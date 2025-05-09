@@ -44,3 +44,16 @@ def init():
 
     step = 0
     prev_step = 0
+
+    # global zmp_x, zmp_y, is_stable
+    # zmp_x = 0
+    # zmp_y = 0
+    # is_stable = True
+    global com_x_ref,com_y_ref,com_xdot_ref,com_ydot_ref 
+    com_x_ref = 0.0
+    com_y_ref = 0.0
+    com_xdot_ref = 0.0
+    com_ydot_ref = 0.0
+    global prev_com,prev_vel
+    prev_com = None
+    prev_vel = None

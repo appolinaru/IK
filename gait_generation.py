@@ -9,6 +9,9 @@ from cartesian_traj import cartesian_traj
 from joint_trah import joint_traj
 from joint_control import joint_control 
 from high_level_control import high_level_control
+from zmp_controller import zmp_controller,compute_com
+import matplotlib.pyplot as plt
+import pandas as pd
 
 flag_trajectory_generation = 0
 
@@ -21,9 +24,9 @@ hip = 0
 pitch = 0.9
 knee = -1.8
 
-sol = forward_kinematics_leg(np.array([hip,pitch,knee]),0)
-end_eff_pos = sol.end_eff_pos
-lz0=end_eff_pos[2]
+# sol = forward_kinematics_leg(np.array([hip,pitch,knee]),0)
+# end_eff_pos = sol.end_eff_pos
+# lz0=end_eff_pos[2]
 #print(lz0)
 
 pos = np.array([0,0,0.3])
@@ -32,6 +35,9 @@ qleg = np.array([hip,pitch,knee])
 
 #setting initial position
 data.qpos = np.concatenate((pos,quat,qleg,qleg,qleg,qleg))
+
+com_history = []
+
 
 with viewer.launch_passive(model, data) as vis:
     while vis.is_running():
@@ -49,7 +55,7 @@ with viewer.launch_passive(model, data) as vis:
         else: #dynamic mode
             globals.q_act = data.qpos[7:].copy()
             globals.u_act = data.qvel[6:].copy()
-            joint_control()
+            joint_control(model,data)
             high_level_control()
             data.ctrl = globals.trq.copy()
             mj.mj_step(model, data)
@@ -59,6 +65,15 @@ with viewer.launch_passive(model, data) as vis:
         # vis.cam.distance = 2.0
         # vis.cam.elevation = -10
         # vis.cam.azimuth = 90
-         
-        
+
         vis.sync()
+
+# df = pd.DataFrame(com_history)
+# plt.figure()
+# plt.plot(df['com_x'], df['com_y'])
+# plt.xlabel('com_x')
+# plt.ylabel('com_y')
+# plt.title('COM trajectory (X vs Y)')
+# plt.grid(True)
+# plt.axis('equal')  # сохраняем пропорции
+# plt.show()

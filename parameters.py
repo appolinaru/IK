@@ -15,10 +15,12 @@ class parameters:
 
         self.vx_min = -2.0
         self.vx_max = 2.0
-        self.dvx = 0.1
+        self.dvx = 0.5
 
         # self.vy_min = -1.0
         # self.vy_max = 1.0
         # self.dvy = 0.05
+        # Параметры походок
+        
 
 pms = parameters()
