@@ -25,7 +25,7 @@ def joint_control(model,data):
     com_error_y = globals.com_y_ref - com_y
 
     # Простая сила обратной связи на туловище для коррекции положения
-    K_com = 13.0  # Коэффициент обратной связи (можно подбирать)
+    K_com = 17.0  # Коэффициент обратной связи (можно подбирать)
     F_com = np.array([K_com * com_error_x, K_com * com_error_y, 0.0])
 
 
@@ -56,5 +56,5 @@ def joint_control(model,data):
             #pd control trq = -kp*(q_act-q_ref)-kd*(u_act - u_ref)
             globals.trq[3*leg_no] =trq_grav[0] -100*(q_act[3*leg_no]-q_ref[3*leg_no])-10*(u_act[3*leg_no] - u_ref[3*leg_no])
             globals.trq[3*leg_no + 1] =trq_grav[1] -100*(q_act[3*leg_no +1]-q_ref[3*leg_no + 1])-10*(u_act[3*leg_no + 1] - u_ref[3*leg_no + 1])
-            globals.trq[3*leg_no+2] =trq_grav[2]  -100*(q_act[3*leg_no+2] -q_ref[3*leg_no+2] )-10*(u_act[3*leg_no+2] -u_ref[3*leg_no+2] )
+            globals.trq[3*leg_no + 2] =trq_grav[2]  -100*(q_act[3*leg_no+2] -q_ref[3*leg_no+2] )-10*(u_act[3*leg_no+2] -u_ref[3*leg_no+2] )       
 

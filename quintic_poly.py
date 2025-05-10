@@ -21,7 +21,7 @@ def quintic_poly(t,t0,tf,q0,qf):
     a = A_inv@b
 
     if (t<t0):
-        t = t0;
+        t = t0
 
     if (t>tf):
         t=tf

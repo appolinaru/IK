@@ -12,7 +12,9 @@ from high_level_control import high_level_control
 from zmp_controller import zmp_controller,compute_com
 import matplotlib.pyplot as plt
 import pandas as pd
+import time
 
+start_time = time.time()
 flag_trajectory_generation = 0
 
 model_path = r"C:\Users\Polina\Documents\ITMO\Graduation_Thesis\mujoco-3.3.0-windows-x86_64\model\unitree_a1\scene.xml"
@@ -37,43 +39,102 @@ qleg = np.array([hip,pitch,knee])
 data.qpos = np.concatenate((pos,quat,qleg,qleg,qleg,qleg))
 
 com_history = []
+zmp_history = []
+time_history = []
 
+# Увеличьте шаг симуляции и уменьшите частоту записи
+model.opt.timestep = 0.002  # Увеличение с 0.001
+record_interval = 0.007  # Записывать каждые 20 мс вместо каждого шага
 
-with viewer.launch_passive(model, data) as vis:
+with viewer.launch_passive(model, data, show_left_ui=False, show_right_ui=False) as vis:
+    next_record = 0
     while vis.is_running():
-
-        model.opt.timestep = 0.001
         state_machine()
         cartesian_traj()
         joint_traj()
         globals.time = data.time
-
-        if(flag_trajectory_generation==1): #kinematic mode
-            data.time +=model.opt.timestep
-            data.qpos = np.concatenate((pos,quat,globals.q_ref))
-            mj.mj_forward(model,data)
-        else: #dynamic mode
+        # Оптимизированный основной цикл
+        if flag_trajectory_generation == 1:
+            data.time += model.opt.timestep
+            data.qpos = np.concatenate((pos, quat, globals.q_ref))
+            mj.mj_forward(model, data)
+        else:
             globals.q_act = data.qpos[7:].copy()
             globals.u_act = data.qvel[6:].copy()
+
             joint_control(model,data)
             high_level_control()
             data.ctrl = globals.trq.copy()
+            # Вычисляем CoM и ZMP только при необходимости
+            if data.time >= next_record:
+                com = compute_com(model, data)
+                zmp_x, zmp_y = zmp_controller(model, data)
+                time_history.append(data.time)
+                com_history.append(com)
+                zmp_history.append((zmp_x, zmp_y))
+                next_record += record_interval
+            
             mj.mj_step(model, data)
+        
+        # Синхронизация с пониженной частотой
+        if data.time % 0.1 < model.opt.timestep:  # Синхронизировать каждые 0.1 сек
+            vis.sync()
 
-        #Camera setup
-        # vis.cam.lookat[:] = data.qpos[:3] 
-        # vis.cam.distance = 2.0
-        # vis.cam.elevation = -10
-        # vis.cam.azimuth = 90
+# with viewer.launch_passive(model, data) as vis:
+#     while vis.is_running():
+        
+#         model.opt.timestep = 0.001
+#         state_machine()
+#         cartesian_traj()
+#         joint_traj()
+#         globals.time = data.time
 
-        vis.sync()
+#         if(flag_trajectory_generation==1): #kinematic mode
+#             data.time +=model.opt.timestep
+#             data.qpos = np.concatenate((pos,quat,globals.q_ref))
+#             mj.mj_forward(model,data)
+#         else: #dynamic mode
+#             globals.q_act = data.qpos[7:].copy()
+#             globals.u_act = data.qvel[6:].copy()
+#             joint_control(model,data)
+#             high_level_control()
+#             data.ctrl = globals.trq.copy()
+#             mj.mj_step(model, data)
 
-# df = pd.DataFrame(com_history)
-# plt.figure()
-# plt.plot(df['com_x'], df['com_y'])
-# plt.xlabel('com_x')
-# plt.ylabel('com_y')
-# plt.title('COM trajectory (X vs Y)')
-# plt.grid(True)
-# plt.axis('equal')  # сохраняем пропорции
-# plt.show()
+#         # # Calculate CoM and ZMP
+#         # com_data = compute_com(model, data)
+#         # zmp_data = zmp_controller(model, data)
+
+#         # # Append data to history
+#         # time_history.append(data.time)
+#         # com_history.append(com_data)
+#         #zmp_history.append(zmp_data)
+
+#         #Camera setup
+#         vis.cam.lookat[:] = data.qpos[:3] 
+#         vis.cam.distance = 2.0
+#         vis.cam.elevation = -10
+#         vis.cam.azimuth = 90
+
+#         com = compute_com(model, data)
+#         zmp_x, zmp_y = zmp_controller(model, data)
+        
+#         # Append data to history
+#         time_history.append(data.time)
+#         com_history.append(com)
+#         zmp_history.append((zmp_x, zmp_y))
+#         vis.sync()
+
+print(f"Скорость симуляции: {data.time / (time.time() - start_time):.2f}x real-time")
+print(f"Симулированное время: {data.time:.2f} сек")
+print(f"Реальное время выполнения: {time.time() - start_time:.2f} сек")
+
+df = pd.DataFrame({
+    'time': time_history,
+    'com_x': [com[0] for com in com_history],
+    'com_y': [com[1] for com in com_history],
+    'com_z': [com[2] for com in com_history],
+    'zmp_x': [zmp[0] for zmp in zmp_history],
+    'zmp_y': [zmp[1] for zmp in zmp_history]
+})
+df.to_csv('motion_data.csv', index=False)

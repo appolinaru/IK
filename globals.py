@@ -1,5 +1,6 @@
 import numpy as np # type: ignore
 from parameters import pms
+import pandas as pd
 
 def init():
     global time
@@ -54,6 +55,42 @@ def init():
     com_y_ref = 0.0
     com_xdot_ref = 0.0
     com_ydot_ref = 0.0
-    global prev_com,prev_vel
+
+    global prev_com,prev_vel,prev_zmp_error_x,prev_zmp_error_y,zmp_x_ref,zmp_y_ref, stance_legs
     prev_com = None
     prev_vel = None
+    prev_acc = None
+    prev_com_error_x = 0
+    prev_com_error_y = 0
+    zmp_x_ref = 0.0  # Желаемый ZMP (можно обновлять в зависимости от фазы шага)
+    zmp_y_ref = 0.0
+    prev_zmp_error_x = 0.0
+    prev_zmp_error_y = 0.0
+
+    stance_legs = []  # Будет хранить индексы ног в фазе опоры
+
+# # Создаём глобальный DataFrame для записи данных
+# log_df = pd.DataFrame(columns=["timestamp", "com_x", "com_y", "com_z", "acc_x", "acc_y", "acc_z", "zmp_x", "zmp_y"])
+
+# def log_data(tag, vec):
+#     # Логируем время и данные
+#     timestamp = globals.time  # допустим, время уже используется в глобальной переменной
+#     data = {"timestamp": timestamp}
+    
+#     # Записываем данные для CoM, ускорения и ZMP
+#     if tag == "CoM":
+#         data.update({"com_x": vec[0], "com_y": vec[1], "com_z": vec[2]})
+#     elif tag == "a_com":
+#         data.update({"acc_x": vec[0], "acc_y": vec[1], "acc_z": vec[2]})
+#     elif tag == "ZMP":
+#         data.update({"zmp_x": vec[0], "zmp_y": vec[1]})
+    
+#     # Добавляем строку в DataFrame
+#     global log_df
+#     log_df = log_df.append(data, ignore_index=True)
+
+#     print(f"{tag}: {vec}")
+
+# def save_log_to_csv():
+#     # Сохраняем DataFrame в CSV файл
+#     log_df.to_csv("log_zmp_com.csv", index=False)

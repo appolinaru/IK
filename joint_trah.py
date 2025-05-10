@@ -22,6 +22,11 @@ def joint_traj():
         globals.q_ref[3*leg_no:3*leg_no+3] = q_leg.copy();
 
         J_foot = jac_end_effector_leg(q_leg,leg_no)
-        J_foot_inv = np.linalg.inv(J_foot)
+        if np.linalg.det(J_foot) == 0:
+            print("Matrix is singular, using pseudo-inverse instead.")
+            J_foot_inv = np.linalg.pinv(J_foot)
+        else:
+            J_foot_inv = np.linalg.inv(J_foot)
+        #J_foot_inv = np.linalg.inv(J_foot)
         u_leg = J_foot_inv@Xdot_ref
         globals.u_ref[3*leg_no:3*leg_no+3] = u_leg.copy();

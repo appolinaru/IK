@@ -1,7 +1,8 @@
 import numpy as np
 from forward_kinematics_leg import forward_kinematics_leg
 from parameters import pms
-import globals
+import globals 
+import pandas as pd
 
 # def zmp_controller(q):
 #     """
@@ -34,24 +35,30 @@ import globals
 #     return zmp_x, zmp_y
 
 
-prev_com = np.zeros(3)
-prev_vel = np.zeros(3)
+time_history = []
+com_history = []
+zmp_history = []
 
 def get_com_acc(model, data):
-    global prev_com, prev_vel, dt
+
+    global dt
     
     dt = model.opt.timestep 
     # 1) текущий CoM
     com = compute_com(model, data)      # [x_c, y_c, z_c]
 
-    # 2) текущая скорость CoM
-    vel = (com - prev_com) / dt         # [vx, vy, vz]
+    if globals.prev_com is None:
+        globals.prev_com = com.copy()
+        globals.prev_vel = np.zeros(3)
+        return com, np.zeros(3)
+    # vel = (com - globals.prev_com) / dt
+    # acc = (vel - globals.prev_vel) / dt
+    alpha = 0.2  # сглаживание (чем меньше, тем плавнее)
+    vel = alpha * (com - globals.prev_com) / dt + (1 - alpha) * globals.prev_vel
+    acc = alpha * (vel - globals.prev_vel) / dt + (1 - alpha) * (globals.prev_acc if hasattr(globals, 'prev_acc') else np.zeros(3))
+    globals.prev_com = com.copy()
+    globals.prev_vel = vel.copy()
 
-    # 3) ускорение CoM
-    acc = (vel - prev_vel) / dt         # [ax, ay, az]
-
-    # 4) обновляем буферы
-    prev_com, prev_vel = com.copy(), vel.copy()
 
     return com, acc
 
@@ -73,10 +80,38 @@ def compute_com(model, data):
     return com
 
 def zmp_controller(model, data):
-    (x_c, y_c, z_c), (xdd, ydd, zdd) = get_com_acc(model, data)
+    com, acc = get_com_acc(model, data)
     g = pms.gravity
 
-    x_zmp = x_c - (z_c / g) * xdd
-    y_zmp = y_c - (z_c / g) * ydd
+    x_zmp = com[0] - (com[2] / g) * acc[0]
+    y_zmp = com[1] - (com[2] / g) * acc[1]
+
+    # globals.log_data("CoM", com)
+    # globals.log_data("a_com", acc)
+    # globals.log_data("ZMP", (x_zmp, y_zmp))
+
+    # # Сохраняем данные в CSV (например, каждую секунду или по событию)
+    # globals.save_log_to_csv()
+
+    zmp = (x_zmp, y_zmp, 0)  # Добавляем нулевую Z-координату для единообразия
+
+    # Сохраняем данные
+    time_history.append(data.time)
+    com_history.append(com)
+    zmp_history.append(zmp)
     return x_zmp, y_zmp
 
+def save_data_to_csv():
+    # Создаем DataFrame с временем, CoM и ZMP
+    data_dict = {
+        'time': time_history,
+        'com_x': [com[0] for com in com_history],
+        'com_y': [com[1] for com in com_history],
+        'com_z': [com[2] for com in com_history],
+        'zmp_x': [zmp[0] for zmp in zmp_history],
+        'zmp_y': [zmp[1] for zmp in zmp_history]
+    }
+    
+    df = pd.DataFrame(data_dict)
+    df.to_csv('motion_data.csv', index=False)
+    print("Данные сохранены в motion_data.csv")
