@@ -49,3 +49,44 @@ def forward_kinematics_leg(q,leg_no):
     
 
     return sol
+# def forward_kinematics_leg(q, leg_no):
+#     L = 0.2  # Длина бедра и голени
+#     w = 0.08505 if (leg_no in [1,3]) else -0.08505
+    
+#     # Углы суставов
+#     hip, thigh, knee = q
+    
+#     # Матрицы поворота (важно: порядок осей!)
+#     R_hip = np.array([
+#         [np.cos(hip), -np.sin(hip), 0],
+#         [np.sin(hip), np.cos(hip),  0],
+#         [0,           0,           1]
+#     ])
+    
+#     R_thigh = np.array([
+#         [np.cos(thigh),  0, np.sin(thigh)],
+#         [0,             1,             0],
+#         [-np.sin(thigh), 0, np.cos(thigh)]
+#     ])
+    
+#     R_knee = np.array([
+#         [np.cos(knee),  0, np.sin(knee)],
+#         [0,            1,            0],
+#         [-np.sin(knee), 0, np.cos(knee)]
+#     ])
+
+#     # Позиции суставов
+#     p_hip = np.array([0, w, 0])
+#     p_knee = p_hip + R_hip @ R_thigh @ np.array([0, 0, -L])
+#     p_foot = p_knee + R_hip @ R_thigh @ R_knee @ np.array([0, 0, -L])
+
+#     # Матрицы преобразования
+#     H01 = np.eye(4); H01[:3,:3] = R_hip; H01[:3,3] = p_hip
+#     H02 = np.eye(4); H02[:3,:3] = R_hip @ R_thigh; H02[:3,3] = p_knee
+#     H03 = np.eye(4); H03[:3,:3] = R_hip @ R_thigh @ R_knee; H03[:3,3] = p_foot
+
+#     return SimpleNamespace(
+#         end_eff_pos=p_foot,
+#         H01=H01, H02=H02, H03=H03,
+#         joint_positions=[p_hip, p_knee, p_foot]
+#     )

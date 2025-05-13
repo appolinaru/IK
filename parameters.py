@@ -21,6 +21,24 @@ class parameters:
         # self.vy_max = 1.0
         # self.dvy = 0.05
         # Параметры походок
+        self.gaits = {
+            "trot": {
+                "phase_offsets": [0, 0.5, 0.5, 0],  # Диагональные пары
+                "stance_phase": [0.5, 0.5, 0.5, 0.5],  # 50% цикла в stance
+                "description": "Диагональная походка (LF+RH → RF+LH)"
+            },
+            "pace": {
+                "phase_offsets": [0, 0.5, 0, 0.5],  # Боковые пары
+                "stance_phase": [0.5, 0.5, 0.5, 0.5],
+                "description": "Боковая походка (LF+RF → LH+RH)"
+            },
+            "bound": {
+                "phase_offsets": [0, 0, 0.5, 0.5],  # Передние/задние пары
+                "stance_phase": [0.5, 0.5, 0.5, 0.5],
+                "description": "Прыжковая походка (передние → задние)"
+            }
+        }
+        self.current_gait = "trot"
         
 
 pms = parameters()

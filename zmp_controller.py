@@ -3,6 +3,7 @@ from forward_kinematics_leg import forward_kinematics_leg
 from parameters import pms
 import globals 
 import pandas as pd
+from scipy.spatial import ConvexHull
 
 # def zmp_controller(q):
 #     """
@@ -83,35 +84,55 @@ def zmp_controller(model, data):
     com, acc = get_com_acc(model, data)
     g = pms.gravity
 
-    x_zmp = com[0] - (com[2] / g) * acc[0]
-    y_zmp = com[1] - (com[2] / g) * acc[1]
+    # Получаем позиции stance-ног
+    stance_positions = []
+    # Фильтрация ускорений
+    alpha = 0.3
+    if not hasattr(globals, 'prev_acc'):
+        globals.prev_acc = np.zeros(3)
+    acc = alpha * acc + (1 - alpha) * globals.prev_acc
+    globals.prev_acc = acc.copy()
 
-    # globals.log_data("CoM", com)
-    # globals.log_data("a_com", acc)
-    # globals.log_data("ZMP", (x_zmp, y_zmp))
+    # Динамический ZMP
+    zmp_dyn_x = com[0] - (com[2] / g) * acc[0]
+    zmp_dyn_y = com[1] - (com[2] / g) * acc[1]
 
-    # # Сохраняем данные в CSV (например, каждую секунду или по событию)
-    # globals.save_log_to_csv()
+    # Смешивание с центром опоры (50/50 вместо 70/30)
+    if len(stance_positions) >= 2:
+        support_center = np.mean(stance_positions, axis=0)
+        zmp_x = 0.5 * support_center[0] + 0.5 * zmp_dyn_x
+        zmp_y = 0.5 * support_center[1] + 0.5 * zmp_dyn_y
+    else:
+        zmp_x, zmp_y = zmp_dyn_x, zmp_dyn_y
 
-    zmp = (x_zmp, y_zmp, 0)  # Добавляем нулевую Z-координату для единообразия
+    # for leg_no in range(4):
+    #     if globals.fsm[leg_no] == pms.fsm_stance:  # Только ноги в stance
+    #         q_leg = [globals.q_act[3*leg_no], globals.q_act[3*leg_no+1], globals.q_act[3*leg_no+2]]
+    #         pos = forward_kinematics_leg(q_leg, leg_no).end_eff_pos
+    #         stance_positions.append(pos[:2])  # Берем x,y
+
+    # if len(stance_positions) >= 2:  # Если есть опора
+    #     # Вычисляем выпуклую оболочку опорных точек
+    #     try:
+    #         hull = ConvexHull(stance_positions)
+    #         support_center = np.mean(stance_positions, axis=0)
+    #         # Смешиваем ZMP и центр опоры
+    #         zmp_x = 0.7*support_center[0] + 0.3*(com[0] - (com[2]/g)*acc[0])
+    #         zmp_y = 0.7*support_center[1] + 0.3*(com[1] - (com[2]/g)*acc[1])
+    #     except:
+    #         # Если точек мало для ConvexHull (например, 2 ноги)
+    #         zmp_x, zmp_y = com[0] - (com[2]/g)*acc[0], com[1] - (com[2]/g)*acc[1]
+    # else:
+    #     # Аварийный режим (все ноги в swing)
+    #     zmp_x, zmp_y = com[0], com[1]
+    
+    # zmp_x = com[0] - (com[2] / g) * acc[0]
+    # zmp_y = com[1] - (com[2] / g) * acc[1]
+        
+    zmp = (zmp_x, zmp_y, 0)  # Добавляем нулевую Z-координату для единообразия
 
     # Сохраняем данные
     time_history.append(data.time)
     com_history.append(com)
     zmp_history.append(zmp)
-    return x_zmp, y_zmp
-
-def save_data_to_csv():
-    # Создаем DataFrame с временем, CoM и ZMP
-    data_dict = {
-        'time': time_history,
-        'com_x': [com[0] for com in com_history],
-        'com_y': [com[1] for com in com_history],
-        'com_z': [com[2] for com in com_history],
-        'zmp_x': [zmp[0] for zmp in zmp_history],
-        'zmp_y': [zmp[1] for zmp in zmp_history]
-    }
-    
-    df = pd.DataFrame(data_dict)
-    df.to_csv('motion_data.csv', index=False)
-    print("Данные сохранены в motion_data.csv")
+    return zmp_x, zmp_y

@@ -35,8 +35,8 @@ def cartesian_traj():
     globals.com_xdot_ref = globals.xdot_ref
 
     # Пока не двигаем по Y
-    globals.com_y_ref = 0.0
-    globals.com_ydot_ref = 0.0
+    globals.com_y_ref = 0
+    globals.com_ydot_ref = 0
     
     for leg_no in range(4):
 
@@ -63,6 +63,7 @@ def cartesian_traj():
 
         globals.ly_ref[leg_no] = ly_ref[leg_no]
         globals.lydot_ref[leg_no] = lydot_ref[leg_no]
+
 # import globals
 # from quintic_poly import quintic_poly
 # from parameters import pms

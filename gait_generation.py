@@ -2,7 +2,6 @@ import mujoco as mj # type: ignore
 import mujoco.viewer as viewer # type: ignore
 import numpy as np # type: ignore
 import globals
-import os
 from state_machine import state_machine
 from forward_kinematics_leg import forward_kinematics_leg
 from cartesian_traj import cartesian_traj
@@ -13,7 +12,10 @@ from zmp_controller import zmp_controller,compute_com
 import matplotlib.pyplot as plt
 import pandas as pd
 import time
+import cProfile
 
+
+    
 start_time = time.time()
 flag_trajectory_generation = 0
 
@@ -42,9 +44,10 @@ com_history = []
 zmp_history = []
 time_history = []
 
+
 # Увеличьте шаг симуляции и уменьшите частоту записи
 model.opt.timestep = 0.002  # Увеличение с 0.001
-record_interval = 0.007  # Записывать каждые 20 мс вместо каждого шага
+record_interval = 0.005  # Записывать каждые 20 мс вместо каждого шага
 
 with viewer.launch_passive(model, data, show_left_ui=False, show_right_ui=False) as vis:
     next_record = 0
@@ -79,6 +82,7 @@ with viewer.launch_passive(model, data, show_left_ui=False, show_right_ui=False)
         # Синхронизация с пониженной частотой
         if data.time % 0.1 < model.opt.timestep:  # Синхронизировать каждые 0.1 сек
             vis.sync()
+
 
 # with viewer.launch_passive(model, data) as vis:
 #     while vis.is_running():

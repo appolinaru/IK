@@ -3,6 +3,7 @@ import numpy as np
 from parameters import pms
 from jac_end_effector_leg import jac_end_effector_leg
 from zmp_controller import zmp_controller
+from forward_kinematics_leg import forward_kinematics_leg
 
 
 def joint_control(model,data):
@@ -25,9 +26,14 @@ def joint_control(model,data):
     com_error_y = globals.com_y_ref - com_y
 
     # Простая сила обратной связи на туловище для коррекции положения
-    K_com = 17.0  # Коэффициент обратной связи (можно подбирать)
-    F_com = np.array([K_com * com_error_x, K_com * com_error_y, 0.0])
+    K_com = 10.0  # Коэффициент обратной связи 
+    K_i = 0.5
+    dt = model.opt.timestep
+    globals.com_error_integral_x += com_error_x * dt
+    globals.com_error_integral_y += com_error_y * dt
+    F_com = np.array([K_com * com_error_x+K_i*globals.com_error_integral_x, 0.0, 0.0])
 
+    #F_com = 0
 
     for leg_no in range(4):
         if (fsm[leg_no]==fsm_stand):
