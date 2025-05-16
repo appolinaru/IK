@@ -38,8 +38,8 @@ def plot_motion_data(csv_file):
 
     # График Y координат
     plt.subplot(3, 1, 2)
+    plt.plot(df['time'], df['zmp_y'], label='ZMP Y', color='orange',linestyle='dotted')
     plt.plot(df['time'], df['com_y'], label='CoM Y', color='green')
-    plt.plot(df['time'], df['zmp_y'], label='ZMP Y', color='orange', linestyle='--')
     plt.xlabel('Время (с)')
     plt.ylabel('Положение Y (м)')
     plt.grid(True)

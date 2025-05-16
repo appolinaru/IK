@@ -86,7 +86,8 @@ def zmp_controller(model, data):
 
     # Получаем позиции stance-ног
     stance_positions = []
-    # Фильтрация ускорений
+
+    # # Фильтрация ускорений
     alpha = 0.3
     if not hasattr(globals, 'prev_acc'):
         globals.prev_acc = np.zeros(3)
@@ -100,34 +101,13 @@ def zmp_controller(model, data):
     # Смешивание с центром опоры (50/50 вместо 70/30)
     if len(stance_positions) >= 2:
         support_center = np.mean(stance_positions, axis=0)
-        zmp_x = 0.5 * support_center[0] + 0.5 * zmp_dyn_x
-        zmp_y = 0.5 * support_center[1] + 0.5 * zmp_dyn_y
+        # Adaptive blending based on number of stance legs
+        blend_factor = 0.3 + 0.2 * (4 - len(stance_positions))  # More weight to support when more legs are down
+        zmp_x = blend_factor * support_center[0] + (1-blend_factor) * zmp_dyn_x
+        zmp_y = blend_factor * support_center[1] + (1-blend_factor) * zmp_dyn_y
     else:
         zmp_x, zmp_y = zmp_dyn_x, zmp_dyn_y
 
-    # for leg_no in range(4):
-    #     if globals.fsm[leg_no] == pms.fsm_stance:  # Только ноги в stance
-    #         q_leg = [globals.q_act[3*leg_no], globals.q_act[3*leg_no+1], globals.q_act[3*leg_no+2]]
-    #         pos = forward_kinematics_leg(q_leg, leg_no).end_eff_pos
-    #         stance_positions.append(pos[:2])  # Берем x,y
-
-    # if len(stance_positions) >= 2:  # Если есть опора
-    #     # Вычисляем выпуклую оболочку опорных точек
-    #     try:
-    #         hull = ConvexHull(stance_positions)
-    #         support_center = np.mean(stance_positions, axis=0)
-    #         # Смешиваем ZMP и центр опоры
-    #         zmp_x = 0.7*support_center[0] + 0.3*(com[0] - (com[2]/g)*acc[0])
-    #         zmp_y = 0.7*support_center[1] + 0.3*(com[1] - (com[2]/g)*acc[1])
-    #     except:
-    #         # Если точек мало для ConvexHull (например, 2 ноги)
-    #         zmp_x, zmp_y = com[0] - (com[2]/g)*acc[0], com[1] - (com[2]/g)*acc[1]
-    # else:
-    #     # Аварийный режим (все ноги в swing)
-    #     zmp_x, zmp_y = com[0], com[1]
-    
-    # zmp_x = com[0] - (com[2] / g) * acc[0]
-    # zmp_y = com[1] - (com[2] / g) * acc[1]
         
     zmp = (zmp_x, zmp_y, 0)  # Добавляем нулевую Z-координату для единообразия
 

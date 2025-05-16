@@ -75,6 +75,7 @@ def _init_swing_leg(leg_num):
     globals.ly_i[leg_num] = 0
     globals.ly_f[leg_num] = 0
 
+
 def _init_stance_leg(leg_num):
     """Инициализация параметров для ноги в stance-фазе"""
     globals.lz_i[leg_num] = pms.lz0

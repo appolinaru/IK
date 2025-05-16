@@ -31,12 +31,18 @@ def cartesian_traj():
 
     # === Центр масс (CoM) траектория ===
     # Простой вариант: CoM движется вперёд со скоростью xdot_ref
-    globals.com_x_ref = globals.xdot_ref * time
-    globals.com_xdot_ref = globals.xdot_ref
 
-    # Пока не двигаем по Y
+
+    # globals.com_x_ref = globals.xdot_ref * time
+    # globals.com_xdot_ref = globals.xdot_ref
+
+    # # Пока не двигаем по Y
+    # globals.com_y_ref = 0
+    # globals.com_ydot_ref = 0
+    globals.com_xdot_ref = globals.xdot_ref
+    globals.com_x_ref = globals.xdot_ref * time + globals.com_correction[0]
+    globals.com_y_ref = 0 + globals.com_correction[1]
     globals.com_y_ref = 0
-    globals.com_ydot_ref = 0
     
     for leg_no in range(4):
 

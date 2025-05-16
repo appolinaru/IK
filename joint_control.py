@@ -26,12 +26,24 @@ def joint_control(model,data):
     com_error_y = globals.com_y_ref - com_y
 
     # Простая сила обратной связи на туловище для коррекции положения
-    K_com = 10.0  # Коэффициент обратной связи 
-    K_i = 0.5
+    if pms.current_gait == "bound":
+        Kx_com = 15.0  # Увеличиваем для лучшего контроля вперед
+        Ky_com = 0.0  # Уменьшаем для снижения колебаний
+        Kx_i = 0    # Добавляем интегральную составляющую
+        Ky_i = 0
+    else:
+        Kx_com = 20.0
+        Ky_com = 200.0
+        Kx_i = 1
+        Ky_i = 5
     dt = model.opt.timestep
     globals.com_error_integral_x += com_error_x * dt
     globals.com_error_integral_y += com_error_y * dt
-    F_com = np.array([K_com * com_error_x+K_i*globals.com_error_integral_x, 0.0, 0.0])
+    F_com = np.array([
+        Kx_com * com_error_x + Kx_i * globals.com_error_integral_x,
+        Ky_com * com_error_y+ Ky_i * globals.com_error_integral_y,
+        0.0
+        ])
 
     #F_com = 0
 

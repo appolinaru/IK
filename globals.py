@@ -53,12 +53,13 @@ def init():
     com_xdot_ref = 0.0
     com_ydot_ref = 0.0
 
-    global prev_com,prev_vel,prev_zmp_error_x,prev_zmp_error_y,zmp_x_ref,zmp_y_ref, stance_legs
+    global prev_com,prev_vel,prev_zmp_error_x,prev_zmp_error_y,zmp_x_ref,zmp_y_ref, stance_legs, com_error_x,com_error_y,com_ydot_act
     prev_com = None
     prev_vel = None
     prev_acc = None
-    prev_com_error_x = 0
-    prev_com_error_y = 0
+    com_ydot_act = 0
+    com_error_x = 0
+    com_error_y = 0
     zmp_x_ref = 0.0  # Желаемый ZMP (можно обновлять в зависимости от фазы шага)
     zmp_y_ref = 0.0
     prev_zmp_error_x = 0.0
@@ -68,3 +69,6 @@ def init():
     com_error_integral_y = 0
     com_error_integral_x = 0
     stance_legs = []  # Будет хранить индексы ног в фазе опоры
+    
+    global com_correction
+    com_correction = np.zeros(2)  # Коррекция положения CoM [x,y]
